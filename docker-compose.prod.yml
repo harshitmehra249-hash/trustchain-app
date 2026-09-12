@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: trustchain-postgres-prod
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - trustchain-network-prod
+
+  redis:
+    image: redis:7-alpine
+    container_name: trustchain-redis-prod
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data_prod:/data
+    restart: always
+    networks:
+      - trustchain-network-prod
+
+  backend:
+    image: trustchain-backend:latest
+    container_name: trustchain-backend-prod
+    environment:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      APP_ENVIRONMENT: production
+      DEBUG: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    networks:
+      - trustchain-network-prod
+
+  frontend:
+    image: trustchain-frontend:latest
+    container_name: trustchain-frontend-prod
+    environment:
+      VITE_API_URL: ${API_URL}
+      VITE_WS_URL: ${WS_URL}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - trustchain-network-prod
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod:
+
+networks:
+  trustchain-network-prod:
+    driver: bridge
