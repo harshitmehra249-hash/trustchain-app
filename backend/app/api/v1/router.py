@@ -1,7 +1,7 @@
-"""API v1 Router Configuration with Auth and Mesh endpoints"""
+"""API v1 Router Configuration with all endpoints"""
 
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, mesh
+from app.api.v1.endpoints import auth, mesh, supply_chain
 
 api_router = APIRouter()
 
@@ -25,8 +25,14 @@ api_router.include_router(
     tags=["Mesh Network"],
 )
 
+# Include supply chain router
+api_router.include_router(
+    supply_chain.router,
+    prefix="/supply-chain",
+    tags=["Supply Chain"],
+)
+
 # TODO: Add additional routers as features are implemented
-# from app.api.v1.endpoints import disaster_requests, supply_chain, ai
+# from app.api.v1.endpoints import disaster_requests, ai
 # api_router.include_router(disaster_requests.router, prefix="/disaster-requests", tags=["Disaster Requests"])
-# api_router.include_router(supply_chain.router, prefix="/supply-chain", tags=["Supply Chain"])
 # api_router.include_router(ai.router, prefix="/ai", tags=["AI Services"])
