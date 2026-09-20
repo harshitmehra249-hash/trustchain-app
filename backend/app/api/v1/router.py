@@ -1,38 +1,18 @@
-"""API v1 Router Configuration with all endpoints"""
+"""API v1 router."""
 
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, mesh, supply_chain
+from app.api.v1.endpoints import ai, auth, mesh, supply_chain
 
 api_router = APIRouter()
 
-# Health check endpoint
+
 @api_router.get("/health")
-async def health():
-    """API health check"""
+async def health() -> dict[str, str]:
+    """API health check."""
     return {"status": "API is running"}
 
-# Include authentication router
-api_router.include_router(
-    auth.router,
-    prefix="/auth",
-    tags=["Authentication"],
-)
 
-# Include mesh network router
-api_router.include_router(
-    mesh.router,
-    prefix="/mesh",
-    tags=["Mesh Network"],
-)
-
-# Include supply chain router
-api_router.include_router(
-    supply_chain.router,
-    prefix="/supply-chain",
-    tags=["Supply Chain"],
-)
-
-# TODO: Add additional routers as features are implemented
-# from app.api.v1.endpoints import disaster_requests, ai
-# api_router.include_router(disaster_requests.router, prefix="/disaster-requests", tags=["Disaster Requests"])
-# api_router.include_router(ai.router, prefix="/ai", tags=["AI Services"])
+api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+api_router.include_router(mesh.router, prefix="/mesh", tags=["Mesh Network"])
+api_router.include_router(supply_chain.router, prefix="/supply-chain", tags=["Supply Chain"])
+api_router.include_router(ai.router, prefix="/ai", tags=["AI Resource Allocation"])
