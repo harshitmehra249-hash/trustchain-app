@@ -17,63 +17,75 @@ TrustChain enables rapid disaster response coordination through:
 trustchain-app/
 ├── frontend/                 # React 18 + TypeScript
 ├── backend/                  # FastAPI + PostgreSQL
-├── contracts/                # Solidity smart contracts
-├── ai-services/              # CrewAI agents & ML models
 ├── docker-compose.yml        # Local development setup
-├── .github/
-│   └── workflows/            # CI/CD pipelines
+├── docker-compose.prod.yml   # Production compose reference
+├── .env.example              # Environment template
 └── docs/                     # Architecture & deployment guides
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Browser)
 
 ### Prerequisites
-- Node.js 18+ (Frontend)
-- Python 3.11+ (Backend)
-- Docker & Docker Compose
+- Node.js 18+ (frontend)
+- Python 3.11+ (backend)
+- PostgreSQL 15+ (or Docker container)
 - Git
 
-### Local Development Setup
+### 1) Configure environment
 
 ```bash
-# Clone repository
-git clone https://github.com/harshitmehra249-hash/trustchain-app.git
-cd trustchain-app
-
-# Copy environment variables
 cp .env.example .env
-
-# Start all services
-docker-compose up -d
-
-# Check status
-docker-compose ps
 ```
 
-Access services:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-- **pgAdmin**: http://localhost:5050
+Required local values:
+- `DATABASE_URL` (must point to a running PostgreSQL database)
+- `JWT_SECRET` (use a long random string)
+- `VITE_API_URL` (default `http://localhost:8000`)
 
-### Manual Setup (No Docker)
+### 2) Start the backend (Terminal 1)
 
-#### Backend
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-alembic upgrade head
-python -m uvicorn app.main:app --reload
+python scripts/init_db.py
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### Frontend
+Backend URLs:
+- API: http://localhost:8000
+- Swagger docs: http://localhost:8000/docs
+- Health check: http://localhost:8000/health
+
+### 3) Start the frontend (Terminal 2)
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+Frontend URL:
+- http://localhost:5173
+
+> The app runs as **two separate processes** in local development: backend + frontend.
+
+### Optional: Docker development services
+
+If you prefer containerized services, use:
+
+```bash
+docker-compose up -d postgres redis
+```
+
+Then run backend/frontend manually with the commands above.
+
+### Troubleshooting
+
+- If backend startup fails, verify `DATABASE_URL` and ensure PostgreSQL is reachable.
+- If frontend shows “Backend is not reachable”, confirm backend is running on `http://localhost:8000`.
+- If `pip install` fails on `ipfshttpclient`, update `pip` and retry in a fresh virtual environment.
 
 ## 🔧 Tech Stack
 
@@ -189,42 +201,23 @@ npm run dev
 
 ## 🔐 Environment Variables
 
-Create `.env` file based on `.env.example`:
+Create `.env` from `.env.example` and update these values first:
 
 ```bash
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/trustchain
-REDIS_URL=redis://localhost:6379/0
+# Local Postgres (example)
+DATABASE_URL=******localhost:5432/trustchain
 
-# Authentication
-JWT_SECRET=your-secret-key-here
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=420
-REFRESH_TOKEN_EXPIRE_DAYS=30
+# Required security setting
+JWT_SECRET=replace-with-a-long-random-secret
 
-# Blockchain
-POLYGON_RPC_URL=https://rpc-mumbai.maticvigil.com
-POLYGON_CHAIN_ID=80001
-PRIVATE_KEY=your-wallet-private-key
-
-# AI/ML
-OPENAI_API_KEY=sk-...
-HUGGINGFACE_API_KEY=hf_...
-
-# Monitoring
-SENTRY_DSN=https://...
-SENTRY_ENVIRONMENT=development
-
-# Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-
-# Frontend
+# Frontend -> backend
 VITE_API_URL=http://localhost:8000
 VITE_WS_URL=ws://localhost:8000
 ```
+
+Notes:
+- Never commit real credentials.
+- AI, blockchain, and SMTP keys are optional for baseline local startup.
 
 ## 📖 Documentation
 

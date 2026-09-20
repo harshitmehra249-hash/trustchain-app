@@ -13,7 +13,11 @@ router = APIRouter()
 
 
 @router.post("/assess-needs", response_model=NeedsAssessmentResponse, status_code=status.HTTP_201_CREATED)
-async def assess_needs(payload: NeedsAssessmentCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> DisasterRequest:
+async def assess_needs(
+    payload: NeedsAssessmentCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> NeedsAssessmentResponse:
     """Submit and prioritize a disaster-relief request."""
     data = payload.model_dump()
     data["requester_id"] = current_user.id
@@ -21,13 +25,21 @@ async def assess_needs(payload: NeedsAssessmentCreate, db: AsyncSession = Depend
 
 
 @router.get("/prioritized-requests", response_model=list[NeedsAssessmentResponse])
-async def prioritized_requests(limit: int = Query(50, ge=1, le=100), db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> list[DisasterRequest]:
+async def prioritized_requests(
+    limit: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[NeedsAssessmentResponse]:
     """List pending requests ordered by priority."""
     return await AIResourceService.prioritized_requests(limit, db)
 
 
 @router.post("/allocate-resources")
-async def allocate_resources(payload: ResourceAllocationCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> dict:
+async def allocate_resources(
+    payload: ResourceAllocationCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict[str, object]:
     """Allocate a resource, returning a clear 404 for unknown requests."""
     try:
         allocation = await AIResourceService.allocate(payload.model_dump(), db)

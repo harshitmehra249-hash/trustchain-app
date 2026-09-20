@@ -96,7 +96,7 @@ def get_client_ip(request: Request) -> str:
     return "0.0.0.0"
 
 
-async def require_role(*roles):
+def require_role(*roles):
     """
     Require specific user role.
     
